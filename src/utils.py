@@ -67,3 +67,44 @@ def smooth_predictions(history_buffer) -> str:
         return "straight"
     counts = Counter(history_buffer)
     return counts.most_common(1)[0][0]
+
+
+def compute_radius_meters(A_fit: float,
+                          B_fit: float,
+                          y_eval_px: int = 360,
+                          ym_per_px: float = 30.0 / 720.0,
+                          xm_per_px: float = 3.7 / 640.0) -> float:
+    """
+    Convert pixel-space polynomial coefficients to real-world curvature radius.
+
+    Uses the standard formula:
+        R = (1 + (2Ay + B)^2)^1.5 / |2A|
+    applied in meter-space (after unit conversion).
+
+    Args:
+        A_fit:       Quadratic coefficient from pixel-space polynomial fit.
+        B_fit:       Linear coefficient from pixel-space polynomial fit.
+        y_eval_px:   y-pixel at which to evaluate radius (default: mid-ROI = 360px).
+        ym_per_px:   Meters per pixel in y-direction.
+                     TuSimple: 30m visible road / 720px ≈ 0.0417 m/px
+        xm_per_px:   Meters per pixel in x-direction.
+                     TuSimple: 3.7m lane / 640px ≈ 0.00578 m/px
+
+    Returns:
+        Radius in meters. Returns float('inf') for near-straight lines.
+    """
+    if abs(A_fit) < 1e-10:
+        return float('inf')   # Perfectly straight
+
+    # Rescale coefficients to meter space
+    # x_m(y_m) = A_m * y_m^2 + B_m * y_m + C_m
+    # A_m = A_px * xm_per_px / (ym_per_px^2)
+    # B_m = B_px * xm_per_px / ym_per_px
+    A_m = A_fit * (xm_per_px / (ym_per_px ** 2))
+    B_m = B_fit * (xm_per_px / ym_per_px)
+    y_m = y_eval_px * ym_per_px
+
+    numerator = (1 + (2 * A_m * y_m + B_m) ** 2) ** 1.5
+    denominator = abs(2 * A_m)
+
+    return numerator / denominator

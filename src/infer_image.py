@@ -10,6 +10,33 @@ from cv_pipeline import process_frame_cv
 from features import extract_features
 from utils import overlay_verdict_and_curve
 
+# Minimum pixel thresholds for a reliable detection
+MIN_LANE_PIXELS_TOTAL = 150    # Total left + right pixels detected
+MIN_ASYMMETRY_RATIO = 0.98     # If 98%+ of pixels are on one side, something is wrong
+
+
+def is_detection_reliable(feature_vector: dict) -> tuple:
+    """
+    Gate: check if lane pixel detection is sufficient to trust the classifier.
+
+    Returns:
+        (reliable: bool, reason: str)
+    """
+    left_px = feature_vector.get("left_pixel_count", 0)
+    right_px = feature_vector.get("right_pixel_count", 0)
+    total = left_px + right_px
+
+    if total < MIN_LANE_PIXELS_TOTAL:
+        return False, f"INSUFFICIENT PIXELS ({total} < {MIN_LANE_PIXELS_TOTAL})"
+
+    if total > 0:
+        asymmetry = abs(left_px - right_px) / total
+        if asymmetry > MIN_ASYMMETRY_RATIO:
+            return False, f"EXTREME ASYMMETRY ({asymmetry:.2f}) — partial occlusion"
+
+    return True, "OK"
+
+
 MODEL_DIR = "models"
 MODEL_FILE = os.path.join(MODEL_DIR, "lane_direction_classifier.joblib")
 SCALER_FILE = os.path.join(MODEL_DIR, "feature_scaler.joblib")
@@ -50,6 +77,15 @@ def infer_single_image(image_path: str, save_output: bool = True, headless: bool
         verdict = "UNKNOWN"
         confidence = 0.0
     else:
+        # Build feature dict for reliability gate
+        feat_names_list = feat_names if feat_names is not None else []
+        feat_dict = dict(zip(feat_names_list, feat_vec.tolist()))
+
+        # V3 reliability gate — refuse to classify on bad detections
+        reliable, reason = is_detection_reliable(feat_dict)
+        if not reliable:
+            return "uncertain", 0.0, {"reason": reason}
+
         feat_vec_scaled = scaler.transform(feat_vec.reshape(1, -1))
         pred_class_idx = model.predict(feat_vec_scaled)[0]
         verdict = str(encoder.inverse_transform([pred_class_idx])[0])

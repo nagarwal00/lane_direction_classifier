@@ -11,6 +11,71 @@ sys.path.append(os.path.dirname(os.path.abspath(__file__)))
 from cv_pipeline import process_frame_cv
 from features import extract_features
 from utils import overlay_verdict_and_curve, smooth_predictions
+from kalman_smoother import LaneKalmanFilter
+from ldw import compute_ldw
+
+
+class EgoMotionDetector:
+    """
+    Uses sparse Lucas-Kanade optical flow on background (sky/road) region
+    to detect rapid camera motion that could cause false curvature readings.
+    """
+
+    def __init__(self, threshold_px: float = 15.0):
+        """
+        Args:
+            threshold_px: Mean optical flow magnitude above which ego-motion
+                          is considered significant (in pixels/frame).
+        """
+        self.prev_gray = None
+        self.threshold = threshold_px
+        self.lk_params = dict(
+            winSize=(15, 15),
+            maxLevel=2,
+            criteria=(cv2.TERM_CRITERIA_EPS | cv2.TERM_CRITERIA_COUNT, 10, 0.03)
+        )
+
+    def detect_motion(self, frame_bgr: np.ndarray) -> tuple:
+        """
+        Args:
+            frame_bgr: Current BGR frame from video.
+
+        Returns:
+            (high_motion: bool, mean_flow_magnitude: float)
+        """
+        gray = cv2.cvtColor(frame_bgr, cv2.COLOR_BGR2GRAY)
+        gray = gray[:200, :]  # Use only sky/horizon region (top 200 rows)
+
+        if self.prev_gray is None:
+            self.prev_gray = gray
+            return False, 0.0
+
+        # Detect feature points in previous frame
+        pts = cv2.goodFeaturesToTrack(self.prev_gray, maxCorners=50,
+                                      qualityLevel=0.3, minDistance=10)
+
+        if pts is None or len(pts) < 5:
+            self.prev_gray = gray
+            return False, 0.0
+
+        # Track them in current frame
+        pts_new, status, _ = cv2.calcOpticalFlowPyrLK(
+            self.prev_gray, gray, pts, None, **self.lk_params
+        )
+
+        good_old = pts[status.ravel() == 1]
+        good_new = pts_new[status.ravel() == 1]
+
+        if len(good_old) < 5:
+            self.prev_gray = gray
+            return False, 0.0
+
+        flow = good_new - good_old
+        magnitudes = np.linalg.norm(flow, axis=2).ravel()
+        mean_mag = float(np.mean(magnitudes))
+
+        self.prev_gray = gray
+        return mean_mag > self.threshold, mean_mag
 
 MODEL_DIR = "models"
 MODEL_FILE = os.path.join(MODEL_DIR, "lane_direction_classifier.joblib")
@@ -119,48 +184,89 @@ def process_video_stream(
     out_writer = cv2.VideoWriter(output_path, fourcc, fps_in, (width, height))
     
     history_buffer = deque(maxlen=window_size)
-    
+
+    # V3: Kalman filter for temporal curvature smoothing
+    kf = LaneKalmanFilter(dt=1.0 / fps_in)
+    # V3: Optical flow ego-motion detector
+    ego_detector = EgoMotionDetector(threshold_px=15.0)
+
     frame_count = 0
     start_time = time.time()
-    
+
     print(f"\n--- Processing Video Stream: {source} ---")
-    
+
     while cap.isOpened():
         ret, frame = cap.read()
         if not ret:
             break
-            
+
         frame_count += 1
-        
+
+        # V3: Ego-motion check before processing
+        high_motion, motion_mag = ego_detector.detect_motion(frame)
+
         # 1. Classical CV Pipeline
         binary_mask, masked_roi, fit_left, fit_right, fit_center, px_data = process_frame_cv(frame)
-        
+
         # 2. Extract Features & Predict
-        feat_vec, _ = extract_features(frame)
+        feat_vec, feat_names = extract_features(frame)
         if feat_vec is not None:
+            # V3: Kalman smoothing on A_fit curvature coefficient
+            feat_names_list = feat_names if feat_names is not None else []
+            feat_dict = dict(zip(feat_names_list, feat_vec.tolist()))
+            raw_A = feat_dict.get("A_fit", 0.0)
+            smoothed_A = kf.update(raw_A)
+            is_reliable = kf.innovation_ok()
+
             feat_scaled = scaler.transform(feat_vec.reshape(1, -1))
             pred_idx = model.predict(feat_scaled)[0]
             raw_pred = str(encoder.inverse_transform([pred_idx])[0])
+
+            if not is_reliable or high_motion:
+                raw_pred = "uncertain"
         else:
+            feat_dict = {}
             raw_pred = "straight"
-            
+
         # 3. Temporal Smoothing via Rolling Buffer Majority Vote
-        history_buffer.append(raw_pred)
+        if raw_pred != "uncertain":
+            history_buffer.append(raw_pred)
         smoothed_verdict = smooth_predictions(history_buffer)
-        
+
         # 4. Draw Verdict Overlay
         ploty = px_data.get("ploty", np.linspace(280, 710, 100))
         fitx = None
         if fit_center is not None:
             fitx = fit_center[0] * (ploty ** 2) + fit_center[1] * ploty + fit_center[2]
-            
+
         display_text = f"TURNING {smoothed_verdict.upper()}" if smoothed_verdict != "straight" else "STRAIGHT"
         verdict_frame = overlay_verdict_and_curve(
             frame, ploty, fitx, verdict=display_text, color=(0, 255, 0), thickness=4
         )
-        
+
+        # V3: Lane Departure Warning overlay
+        lane_offset = feat_dict.get("lane_center_offset", 0.0)
+        ldw_result = compute_ldw(lane_offset, smoothed_verdict)
+        if ldw_result.alert:
+            cv2.rectangle(verdict_frame, (0, 0),
+                          (verdict_frame.shape[1] - 1, verdict_frame.shape[0] - 1),
+                          (0, 0, 255), 8)
+            cv2.putText(verdict_frame, ldw_result.status.value,
+                        (20, verdict_frame.shape[0] - 40),
+                        cv2.FONT_HERSHEY_DUPLEX, 1.2, (0, 0, 255), 3)
+        else:
+            cv2.putText(verdict_frame, "LDW: SAFE",
+                        (20, verdict_frame.shape[0] - 40),
+                        cv2.FONT_HERSHEY_DUPLEX, 0.8, (0, 255, 0), 2)
+
+        # V3: Motion blur warning overlay
+        if high_motion:
+            cv2.putText(verdict_frame, "(MOTION BLUR — LOW CONFIDENCE)",
+                        (20, verdict_frame.shape[0] - 80),
+                        cv2.FONT_HERSHEY_SIMPLEX, 0.7, (0, 165, 255), 2)
+
         out_writer.write(verdict_frame)
-        
+
         if not headless:
             cv2.imshow("Real-Time Lane Curvature Classifier", verdict_frame)
             if cv2.waitKey(1) & 0xFF == ord("q"):
