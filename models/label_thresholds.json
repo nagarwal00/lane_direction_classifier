@@ -1,0 +1,5 @@
+{
+    "lower_threshold": -0.00032738359344564456,
+    "upper_threshold": 0.00010336795716080548,
+    "num_valid_samples": 500
+}

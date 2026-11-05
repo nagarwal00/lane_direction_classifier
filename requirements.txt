@@ -1,0 +1,39 @@
+# Core CV
+opencv-python>=4.8.0
+numpy>=1.24.0,<2.0.0
+scipy>=1.10.0
+
+# Data handling
+pandas>=2.0.0
+pyarrow>=12.0.0
+
+# Classical ML (V1)
+scikit-learn>=1.3.0
+joblib>=1.3.0
+
+# Deep Learning (V2)
+torch>=2.1.0
+torchvision>=0.16.0
+torchaudio>=2.1.0
+
+# Augmentation (V2)
+albumentations>=1.3.0
+
+# Explainability (V2)
+shap>=0.43.0
+
+# ONNX Export (V2)
+onnx>=1.14.0
+onnxruntime>=1.16.0
+onnxscript>=0.1.0
+
+# Visualisation
+matplotlib>=3.7.0
+seaborn>=0.12.0
+Pillow>=10.0.0
+
+# Reporting
+jinja2>=3.1.0
+
+# Utilities
+tqdm>=4.65.0

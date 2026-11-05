@@ -1,0 +1,49 @@
+{
+    "chosen_model": "GradientBoosting",
+    "best_hyperparameters": {
+        "learning_rate": 0.05,
+        "max_depth": 3,
+        "n_estimators": 150
+    },
+    "cv_results": {
+        "LogisticRegression": {
+            "mean_accuracy": 0.9226666666666666,
+            "std_accuracy": 0.03199999999999997,
+            "mean_f1_macro": 0.9221564160517662
+        },
+        "SVC_RBF": {
+            "mean_accuracy": 0.9253333333333333,
+            "std_accuracy": 0.033306655991458115,
+            "mean_f1_macro": 0.9252455059614787
+        },
+        "RandomForest": {
+            "mean_accuracy": 0.9706666666666667,
+            "std_accuracy": 0.013063945294843633,
+            "mean_f1_macro": 0.9703870198044511
+        },
+        "GradientBoosting": {
+            "mean_accuracy": 0.976,
+            "std_accuracy": 0.005333333333333323,
+            "mean_f1_macro": 0.9759230153599902
+        }
+    },
+    "tuned_cv_accuracy": 0.9786666666666667,
+    "num_train_samples": 375,
+    "num_test_samples": 125,
+    "feature_names": [
+        "A_fit",
+        "B_fit",
+        "delta_x_top_bottom",
+        "mean_slope",
+        "left_pixel_count",
+        "right_pixel_count",
+        "pixel_count_asymmetry",
+        "lane_center_offset",
+        "std_x_per_row"
+    ],
+    "classes": [
+        "left",
+        "right",
+        "straight"
+    ]
+}

@@ -1,0 +1,21 @@
+Lane Curvature Direction Classifier — Final Evaluation
+=====================================================
+
+Overall Accuracy: 94.40%
+Macro F1-Score:   0.9436
+
+Classification Report:
+              precision    recall  f1-score   support
+
+        left     0.9767    1.0000    0.9882        42
+       right     0.9737    0.8810    0.9250        42
+    straight     0.8864    0.9512    0.9176        41
+
+    accuracy                         0.9440       125
+   macro avg     0.9456    0.9441    0.9436       125
+weighted avg     0.9461    0.9440    0.9438       125
+
+Confusion Matrix:
+[[42  0  0]
+ [ 0 37  5]
+ [ 1  1 39]]
