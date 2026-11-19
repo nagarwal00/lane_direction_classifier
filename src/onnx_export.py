@@ -58,7 +58,7 @@ def export_to_onnx():
         dummy_input,
         ONNX_PATH,
         export_params=True,
-        opset_version=17,
+        opset_version=18,
         do_constant_folding=True,    # Optimises constant expressions
         input_names=["image"],
         output_names=["logits"],

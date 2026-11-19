@@ -42,3 +42,4 @@ using weakly supervised labeling.
 V1 achieves 94.4% on clean highway data but degrades significantly under
 night (-XX%), rain (-XX%), and Indian road conditions (-XX%). This performance
 gap motivates the V2 deep learning upgrade and future work on domain adaptation.
+

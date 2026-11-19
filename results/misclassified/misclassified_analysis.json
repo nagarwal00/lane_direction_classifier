@@ -1,0 +1,157 @@
+{
+  "v1_misclassified": [
+    {
+      "model": "V1_GBM",
+      "image_filename": "img_00109.jpg",
+      "actual": "straight",
+      "predicted": "right",
+      "confidence": 84.52,
+      "A_fit": 8.53459084416523e-05,
+      "reason": "Boundary curvature coefficient A_fit=0.000085 near decision threshold between straight and right"
+    },
+    {
+      "model": "V1_GBM",
+      "image_filename": "img_00453.jpg",
+      "actual": "right",
+      "predicted": "straight",
+      "confidence": 99.94,
+      "A_fit": -8.143850385687478e-05,
+      "reason": "Boundary curvature coefficient A_fit=-0.000081 near decision threshold between right and straight"
+    },
+    {
+      "model": "V1_GBM",
+      "image_filename": "img_00271.jpg",
+      "actual": "right",
+      "predicted": "straight",
+      "confidence": 99.9,
+      "A_fit": 7.969400963709689e-05,
+      "reason": "Boundary curvature coefficient A_fit=0.000080 near decision threshold between right and straight"
+    },
+    {
+      "model": "V1_GBM",
+      "image_filename": "img_00139.jpg",
+      "actual": "straight",
+      "predicted": "left",
+      "confidence": 65.59,
+      "A_fit": -0.0005402342040915,
+      "reason": "Boundary curvature coefficient A_fit=-0.000540 near decision threshold between straight and left"
+    },
+    {
+      "model": "V1_GBM",
+      "image_filename": "img_00392.jpg",
+      "actual": "right",
+      "predicted": "straight",
+      "confidence": 97.58,
+      "A_fit": 9.342597813971024e-05,
+      "reason": "Boundary curvature coefficient A_fit=0.000093 near decision threshold between right and straight"
+    },
+    {
+      "model": "V1_GBM",
+      "image_filename": "img_00153.jpg",
+      "actual": "right",
+      "predicted": "straight",
+      "confidence": 99.94,
+      "A_fit": 3.52226383291952e-05,
+      "reason": "Boundary curvature coefficient A_fit=0.000035 near decision threshold between right and straight"
+    },
+    {
+      "model": "V1_GBM",
+      "image_filename": "img_00072.jpg",
+      "actual": "right",
+      "predicted": "straight",
+      "confidence": 99.9,
+      "A_fit": 7.360611365125524e-05,
+      "reason": "Boundary curvature coefficient A_fit=0.000074 near decision threshold between right and straight"
+    }
+  ],
+  "v2_misclassified": [
+    {
+      "model": "V2_MobileNetV2",
+      "image_filename": "img_00418.jpg",
+      "actual": "right",
+      "predicted": "straight",
+      "confidence": 96.98,
+      "reason": "Visual lane boundary orientation and perspective compression confused deep convolutional representation with straight"
+    },
+    {
+      "model": "V2_MobileNetV2",
+      "image_filename": "img_00396.jpg",
+      "actual": "right",
+      "predicted": "straight",
+      "confidence": 40.84,
+      "reason": "Visual lane boundary orientation and perspective compression confused deep convolutional representation with straight"
+    },
+    {
+      "model": "V2_MobileNetV2",
+      "image_filename": "img_00143.jpg",
+      "actual": "left",
+      "predicted": "straight",
+      "confidence": 46.59,
+      "reason": "Visual lane boundary orientation and perspective compression confused deep convolutional representation with straight"
+    },
+    {
+      "model": "V2_MobileNetV2",
+      "image_filename": "img_00066.jpg",
+      "actual": "left",
+      "predicted": "straight",
+      "confidence": 81.41,
+      "reason": "Visual lane boundary orientation and perspective compression confused deep convolutional representation with straight"
+    },
+    {
+      "model": "V2_MobileNetV2",
+      "image_filename": "img_00493.jpg",
+      "actual": "right",
+      "predicted": "straight",
+      "confidence": 65.41,
+      "reason": "Visual lane boundary orientation and perspective compression confused deep convolutional representation with straight"
+    },
+    {
+      "model": "V2_MobileNetV2",
+      "image_filename": "img_00453.jpg",
+      "actual": "right",
+      "predicted": "straight",
+      "confidence": 95.92,
+      "reason": "Visual lane boundary orientation and perspective compression confused deep convolutional representation with straight"
+    },
+    {
+      "model": "V2_MobileNetV2",
+      "image_filename": "img_00072.jpg",
+      "actual": "right",
+      "predicted": "straight",
+      "confidence": 93.65,
+      "reason": "Visual lane boundary orientation and perspective compression confused deep convolutional representation with straight"
+    },
+    {
+      "model": "V2_MobileNetV2",
+      "image_filename": "img_00361.jpg",
+      "actual": "right",
+      "predicted": "straight",
+      "confidence": 64.98,
+      "reason": "Visual lane boundary orientation and perspective compression confused deep convolutional representation with straight"
+    },
+    {
+      "model": "V2_MobileNetV2",
+      "image_filename": "img_00392.jpg",
+      "actual": "right",
+      "predicted": "straight",
+      "confidence": 97.76,
+      "reason": "Visual lane boundary orientation and perspective compression confused deep convolutional representation with straight"
+    },
+    {
+      "model": "V2_MobileNetV2",
+      "image_filename": "img_00031.jpg",
+      "actual": "right",
+      "predicted": "straight",
+      "confidence": 87.25,
+      "reason": "Visual lane boundary orientation and perspective compression confused deep convolutional representation with straight"
+    },
+    {
+      "model": "V2_MobileNetV2",
+      "image_filename": "img_00153.jpg",
+      "actual": "right",
+      "predicted": "straight",
+      "confidence": 98.84,
+      "reason": "Visual lane boundary orientation and perspective compression confused deep convolutional representation with straight"
+    }
+  ]
+}

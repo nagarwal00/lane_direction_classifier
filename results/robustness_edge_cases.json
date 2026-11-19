@@ -1,0 +1,100 @@
+[
+  {
+    "scenario": "1. Bright sunlight",
+    "input_path": "scratch/edge_case_samples\\1_bright_sunlight.jpg",
+    "status": "PASSED",
+    "outcome": "Verdict: RIGHT (Conf: 65.4%)",
+    "reason": "OK"
+  },
+  {
+    "scenario": "2. Low light",
+    "input_path": "scratch/edge_case_samples\\2_low_light.jpg",
+    "status": "PASSED",
+    "outcome": "Verdict: RIGHT (Conf: 96.4%)",
+    "reason": "OK"
+  },
+  {
+    "scenario": "3. Cast shadows",
+    "input_path": "scratch/edge_case_samples\\3_shadows.jpg",
+    "status": "PASSED",
+    "outcome": "Verdict: STRAIGHT (Conf: 73.8%)",
+    "reason": "OK"
+  },
+  {
+    "scenario": "4. Heavy blur",
+    "input_path": "scratch/edge_case_samples\\4_heavy_blur.jpg",
+    "status": "PASSED",
+    "outcome": "Verdict: STRAIGHT (Conf: 100.0%)",
+    "reason": "OK"
+  },
+  {
+    "scenario": "5. Sensor noise",
+    "input_path": "scratch/edge_case_samples\\5_noisy_sensor.jpg",
+    "status": "PASSED",
+    "outcome": "Verdict: RIGHT (Conf: 96.7%)",
+    "reason": "OK"
+  },
+  {
+    "scenario": "6. Faded markings",
+    "input_path": "scratch/edge_case_samples\\6_faded_markings.jpg",
+    "status": "PASSED",
+    "outcome": "Verdict: STRAIGHT (Conf: 100.0%)",
+    "reason": "OK"
+  },
+  {
+    "scenario": "7. Partial occlusion",
+    "input_path": "scratch/edge_case_samples\\7_partial_occlusion.jpg",
+    "status": "PASSED",
+    "outcome": "Verdict: STRAIGHT (Conf: 66.3%)",
+    "reason": "OK"
+  },
+  {
+    "scenario": "8. Curved road",
+    "input_path": "data/images/img_00003.jpg",
+    "status": "PASSED",
+    "outcome": "Verdict: LEFT (Conf: 99.9%)",
+    "reason": "OK"
+  },
+  {
+    "scenario": "9. Straight road",
+    "input_path": "data/images/img_00005.jpg",
+    "status": "PASSED",
+    "outcome": "Verdict: STRAIGHT (Conf: 99.9%)",
+    "reason": "OK"
+  },
+  {
+    "scenario": "10. No detectable lanes",
+    "input_path": "scratch/edge_case_samples\\10_no_detectable_lanes.jpg",
+    "status": "PASSED",
+    "outcome": "Verdict: UNKNOWN (Conf: 0.0%)",
+    "reason": "OK"
+  },
+  {
+    "scenario": "11. Different resolution (640x360)",
+    "input_path": "scratch/edge_case_samples\\11_different_resolution_640x360.jpg",
+    "status": "PASSED",
+    "outcome": "Verdict: STRAIGHT (Conf: 64.6%)",
+    "reason": "OK"
+  },
+  {
+    "scenario": "12. Corrupted file",
+    "input_path": "scratch/edge_case_samples\\12_corrupted.jpg",
+    "status": "HANDLED_EXCEPTION",
+    "outcome": "Safely caught exception: ValueError",
+    "reason": "Failed to read image at scratch/edge_case_samples\\12_corrupted.jpg"
+  },
+  {
+    "scenario": "13. Empty file (0 bytes)",
+    "input_path": "scratch/edge_case_samples\\13_empty_file.jpg",
+    "status": "HANDLED_EXCEPTION",
+    "outcome": "Safely caught exception: ValueError",
+    "reason": "Failed to read image at scratch/edge_case_samples\\13_empty_file.jpg"
+  },
+  {
+    "scenario": "14. Invalid file format (.txt)",
+    "input_path": "scratch/edge_case_samples\\14_invalid_format.txt",
+    "status": "HANDLED_EXCEPTION",
+    "outcome": "Safely caught exception: ValueError",
+    "reason": "Failed to read image at scratch/edge_case_samples\\14_invalid_format.txt"
+  }
+]

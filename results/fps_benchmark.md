@@ -16,3 +16,4 @@ Measurement: Mean over 20 images, model pre-loaded (excludes cold-start I/O)
 > V2 ONNX at **106.6 FPS** satisfies real-time requirements with 10× headroom.
 
 **Source data:** `results/latency_benchmark.json` (PyTorch/ONNX benchmarks from `src/onnx_export.py`)
+
