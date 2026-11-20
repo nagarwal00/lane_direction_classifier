@@ -107,14 +107,31 @@ def run_tests():
 
 
 def main():
+    # Normalize common CLI argument formats (e.g., PowerShell '-mode', bare 'all', etc.)
+    raw_args = sys.argv[1:]
+    normalized_args = []
+    i = 0
+    while i < len(raw_args):
+        arg = raw_args[i]
+        if arg in ["-mode", "/mode"]:
+            normalized_args.append("--mode")
+        elif arg in ["all", "v1", "v2", "test", "report"]:
+            if not normalized_args or normalized_args[-1] != "--mode":
+                normalized_args.extend(["--mode", arg])
+            else:
+                normalized_args.append(arg)
+        else:
+            normalized_args.append(arg)
+        i += 1
+
     parser = argparse.ArgumentParser(description="Lane Direction Classifier Master Runner")
     parser.add_argument(
-        "--mode",
+        "--mode", "-m",
         choices=["all", "v1", "v2", "test", "report"],
         default="all",
         help="Pipeline execution mode (default: all)"
     )
-    args = parser.parse_args()
+    args = parser.parse_args(normalized_args)
 
     start_total = time.time()
     print_banner(f"STARTING LANE CLASSIFIER MASTER PIPELINE (Mode: {args.mode.upper()})")
