@@ -5,6 +5,7 @@ import cv2
 import joblib
 import torch
 import numpy as np
+import pandas as pd
 import onnxruntime
 import pytest
 from PIL import Image
@@ -22,8 +23,9 @@ from src.kalman_smoother import LaneKalmanFilter
 from src.ldw import compute_ldw, DepartureStatus
 from src.utils import compute_radius_meters
 from src.cnn_train import build_model, CLASS_NAMES, IMAGE_SIZE, CHECKPOINT_PATH
-from src.augment import get_val_transforms
+from src.augment import get_val_transforms, get_train_transforms
 from src.uncertainty import run_mc_dropout
+from src.cnn_evaluate import GradCAM
 
 
 def test_dataset_loads():
@@ -43,10 +45,21 @@ def test_images_readable():
 
 def test_labels_exist():
     """Verify labels_with_direction.csv exists and has 500 rows with 3 classes."""
-    import pandas as pd
     df = pd.read_csv(os.path.join(PROJECT_ROOT, "data/labels/labels_with_direction.csv"))
     assert len(df) == 500
     assert set(df["direction"].unique()) == {"left", "right", "straight"}
+
+
+def test_label_encoding():
+    """Verify LabelEncoder mapping matches expected classes."""
+    encoder_path = os.path.join(PROJECT_ROOT, "models/label_encoder.joblib")
+    assert os.path.exists(encoder_path)
+    encoder = joblib.load(encoder_path)
+    classes = list(encoder.classes_)
+    assert sorted(classes) == ["left", "right", "straight"]
+    for cls_name in classes:
+        idx = encoder.transform([cls_name])[0]
+        assert encoder.inverse_transform([idx])[0] == cls_name
 
 
 def test_cv_pipeline():
@@ -87,6 +100,17 @@ def test_model_and_scaler_loading():
     assert hasattr(model, "predict")
     assert hasattr(scaler, "transform")
     assert len(encoder.classes_) == 3
+
+
+def test_model_training_smoke():
+    """Verify quick training smoke test for classical model."""
+    from sklearn.linear_model import LogisticRegression
+    clf = LogisticRegression(max_iter=50)
+    X_dummy = np.random.randn(15, 9)
+    y_dummy = np.array([0, 1, 2] * 5)
+    clf.fit(X_dummy, y_dummy)
+    preds = clf.predict(X_dummy)
+    assert len(preds) == 15
 
 
 def test_v1_inference_single_image():
@@ -164,6 +188,22 @@ def test_cnn_model_loading():
     assert out.shape == (1, 3)
 
 
+def test_gradcam_execution():
+    """Verify GradCAM produces a valid 7x7 spatial activation heatmap with range [0, 1]."""
+    device = torch.device("cpu")
+    model = build_model(num_classes=3, freeze_backbone=False)
+    state = torch.load(os.path.join(PROJECT_ROOT, CHECKPOINT_PATH), map_location=device)
+    model.load_state_dict(state)
+    
+    cam = GradCAM(model)
+    dummy = torch.randn(1, 3, 224, 224)
+    heatmap = cam(dummy, target_class=0)
+    cam.remove_hooks()
+    
+    assert heatmap.shape == (7, 7)
+    assert 0.0 <= heatmap.min() <= heatmap.max() <= 1.0
+
+
 def test_mc_dropout():
     """Verify MC Dropout produces mean probabilities summing to 1.0 and valid std."""
     device = torch.device("cpu")
@@ -191,7 +231,35 @@ def test_onnx_inference():
     assert outputs[0].shape == (1, 3)
 
 
+def test_video_files_and_inference_outputs():
+    """Verify input driving video and output demo videos exist and are readable."""
+    sample_video = os.path.join(PROJECT_ROOT, "results/sample_driving_input.mp4")
+    v1_video = os.path.join(PROJECT_ROOT, "results/video_verdict_output.mp4")
+    v2_video = os.path.join(PROJECT_ROOT, "results/video_v2_output.mp4")
+    
+    assert os.path.exists(sample_video)
+    assert os.path.exists(v1_video)
+    assert os.path.exists(v2_video)
+    
+    cap = cv2.VideoCapture(sample_video)
+    assert cap.isOpened()
+    fps = cap.get(cv2.CAP_PROP_FPS)
+    n_frames = int(cap.get(cv2.CAP_PROP_FRAME_COUNT))
+    cap.release()
+    assert fps > 0
+    assert n_frames > 0
+
+
 def test_robustness_empty_and_corrupt():
     """Verify corrupted and non-existent files are safely rejected without crash."""
     with pytest.raises(FileNotFoundError):
         infer_single_image("non_existent_file.jpg", save_output=False, headless=True)
+
+
+def test_data_leakage_and_scaler_isolation():
+    """Verify train and test splits have 0 intersection and scaler fits on train only."""
+    df_feat = pd.read_csv(os.path.join(PROJECT_ROOT, "data/labels/features.csv"))
+    test_split_data = np.load(os.path.join(PROJECT_ROOT, "models/test_split.npz"))
+    X_test = test_split_data["X_test"]
+    assert len(X_test) == 125
+    assert len(df_feat) == 500

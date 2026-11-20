@@ -113,6 +113,9 @@ class GradCAM:
 
         return cam
 
+    def __call__(self, input_tensor: torch.Tensor, target_class: int) -> np.ndarray:
+        return self.generate(input_tensor, target_class)
+
     def remove_hooks(self):
         self.forward_hook.remove()
         self.backward_hook.remove()
