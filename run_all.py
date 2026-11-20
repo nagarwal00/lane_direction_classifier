@@ -17,7 +17,29 @@ import argparse
 import subprocess
 
 PROJECT_ROOT = os.path.dirname(os.path.abspath(__file__))
-PYTHON_EXE = sys.executable
+
+# ── Auto-Detect and Re-exec with Project Virtual Environment ───────────────
+venv_python = os.path.join(PROJECT_ROOT, ".venv", "Scripts", "python.exe")
+if not os.path.exists(venv_python):
+    venv_python = os.path.join(PROJECT_ROOT, ".venv", "bin", "python")
+
+if os.path.exists(venv_python):
+    current_exe = os.path.abspath(sys.executable).lower()
+    target_exe = os.path.abspath(venv_python).lower()
+    if current_exe != target_exe:
+        try:
+            import joblib
+            import torch
+            import cv2
+        except ImportError:
+            print(f"[AUTO-ENV] Detected virtual environment at: {venv_python}")
+            print(f"[AUTO-ENV] Current python ({sys.executable}) lacks required packages.")
+            print(f"[AUTO-ENV] Re-launching under project virtual environment...\n")
+            res = subprocess.run([venv_python] + sys.argv, cwd=PROJECT_ROOT)
+            sys.exit(res.returncode)
+    PYTHON_EXE = venv_python
+else:
+    PYTHON_EXE = sys.executable
 
 
 def print_banner(text: str):
